@@ -10,12 +10,9 @@ app.use(express.json());
 
 // Connect to MongoDB
 mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.error("MongoDB Connection Error:", err));
+  .catch((err) => console.error("MongoDB Connection Error:", err));
 
 // Define Mongoose Schema
 const projectSchema = new mongoose.Schema({
@@ -39,12 +36,13 @@ app.get("/api/projects", async (req, res) => {
       const projects = await Project.find();
       res.json(projects);
     } catch (error) {
+      console.error("Error fetching projects:", error);
       res.status(500).json({ message: "Error fetching projects", error });
     }
 });
 
 // Start Server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 
 module.exports = app;
