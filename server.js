@@ -8,11 +8,27 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Root route to confirm backend is running
+app.get("/", (req, res) => {
+  res.send("Backend is running")
+})
+
+
 // Connect to MongoDB
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 5000 }) // Prevent long timeouts
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.error("MongoDB Connection Error:", err));
+
+// Keep-alive
+setInterval(async () => {
+  try {
+      await mongoose.connection.db.admin().ping();
+      console.log("✅ MongoDB Ping Successful (Keep-Alive)");
+  } catch (error) {
+      console.error("❌ MongoDB Ping Failed:", error);
+  }
+}, 60000); // Runs every 60 seconds
 
 // Define Mongoose Schema
 const projectSchema = new mongoose.Schema({
