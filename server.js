@@ -2,17 +2,42 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const multer = require("multer");
+const { put } = require("@vercel/blob");
 
 // Initialize Express App
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+const upload = multer({ storage: multer.memoryStorage() });
+
+app.post("/upload", upload.single("file"), async (req, res) => {
+  try {
+      const file = req.file;
+      if (!file) return res.status(400).json({ error: "No file uploaded" });
+
+      const blob = await put(file.originalname, file.buffer, {
+          access: "public", // Make sure the image is accessible via URL
+      });
+
+      res.json({ imageUrl: blob.url }); // Return the public URL of the uploaded image
+  } catch (error) {
+      console.error("Error uploading file:", error);
+      res.status(500).json({ error: "Failed to upload image" });
+  }
+});
+
 // Root route to confirm backend is running
 app.get("/", (req, res) => {
   res.send("Backend is running")
 })
 
+const path = require("path");
+app.use("/uploads", (req, res, next) => {
+  console.log("Serving file:", req.url);
+  next();
+}, express.static(path.resolve(__dirname, "uploads")));
 
 // Connect to MongoDB
 mongoose
